@@ -1,0 +1,26 @@
+---
+- name: Verificar Homebrew en macOS
+  hosts: macos_hosts  # Define un grupo para tus hosts macOS
+  gather_facts: false
+
+  tasks:
+    - name: Verificar si Homebrew está instalado
+      command: which brew
+      register: brew_path
+      ignore_errors: true
+      changed_when: false
+
+    - name: Mostrar estado de Homebrew
+      debug:
+        msg: "Homebrew está instalado: {{ brew_path.rc == 0 }}"
+
+    - name: Ejecutar comando de Homebrew para verificar versión (si está instalado)
+      command: brew --version
+      register: brew_version
+      when: brew_path.rc == 0
+      ignore_errors: true
+
+    - name: Mostrar versión de Homebrew
+      debug:
+        msg: "Versión de Homebrew: {{ brew_version.stdout }}"
+      when: brew_path.rc == 0 and brew_version.stdout

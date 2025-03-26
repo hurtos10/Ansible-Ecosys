@@ -1,0 +1,25 @@
+---
+- name: Verificar Winget en Windows
+  hosts: windows_hosts  # Define un grupo para tus hosts Windows
+  gather_facts: false
+
+  tasks:
+    - name: Verificar si Winget está instalado
+      win_stat:
+        path: "C:\\Program Files\\WindowsApps\\Microsoft.DesktopAppInstaller_*"
+      register: winget_status
+
+    - name: Mostrar estado de Winget
+      debug:
+        msg: "Winget está instalado: {{ winget_status.stat.exists }}"
+
+    - name: Ejecutar comando de Winget para verificar versión (si está instalado)
+      win_command: winget --version
+      register: winget_version
+      when: winget_status.stat.exists
+      ignore_errors: true
+
+    - name: Mostrar versión de Winget
+      debug:
+        msg: "Versión de Winget: {{ winget_version.stdout }}"
+      when: winget_status.stat.exists and winget_version.stdout

@@ -1,50 +1,14 @@
 ---
-- name: Verificar la instalación de gestores de paquetes según el sistema operativo
-  hosts: all  # Aplica a todos los hosts definidos en el inventario
-  gather_facts: true # Necesitamos las "facts" del sistema operativo
+- name: Verificar gestores de paquetes según el sistema operativo
+  hosts: all
+  gather_facts: true
 
   tasks:
-    - name: Verificar Winget en Windows
-      win_stat:
-        path: "C:\\Program Files\\WindowsApps\\Microsoft.DesktopAppInstaller_*"
-      register: winget_status
+    - name: Incluir playbook de Winget si el host es Windows
+      include_tasks: Win-Ecosys.yml
       when: ansible_facts.os_family == "Windows"
 
-    - name: Mostrar estado de Winget (Windows)
-      debug:
-        msg: "Winget está instalado: {{ winget_status.stat.exists }}"
-      when: ansible_facts.os_family == "Windows"
-
-    - name: Ejecutar comando de Winget para verificar versión (si está instalado en Windows)
-      win_command: winget --version
-      register: winget_version
-      when: ansible_facts.os_family == "Windows" and winget_status.stat.exists
-      ignore_errors: true
-
-    - name: Mostrar versión de Winget (Windows)
-      debug:
-        msg: "Versión de Winget: {{ winget_version.stdout }}"
-      when: ansible_facts.os_family == "Windows" and winget_status.stat.exists and winget_version.stdout
-
-    - name: Verificar Homebrew en macOS
-      command: which brew
-      register: brew_path
-      ignore_errors: true
-      changed_when: false
+    - name: Incluir playbook de Homebrew si el host es macOS
+      include_tasks: OsX-Ecosys.yml
       when: ansible_facts.os_family == "Darwin"
-
-    - name: Mostrar estado de Homebrew (macOS)
-      debug:
-        msg: "Homebrew está instalado: {{ brew_path.rc == 0 }}"
-      when: ansible_facts.os_family == "Darwin"
-
-    - name: Ejecutar comando de Homebrew para verificar versión (si está instalado en macOS)
-      command: brew --version
-      register: brew_version
-      when: ansible_facts.os_family == "Darwin" and brew_path.rc == 0
-      ignore_errors: true
-
-    - name: Mostrar versión de Homebrew (macOS)
-      debug:
-        msg: "Versión de Homebrew: {{ brew_version.stdout }}"
-      when: ansible_facts.os_family == "Darwin" and brew_path.rc == 0 and brew_version.stdout
+      
